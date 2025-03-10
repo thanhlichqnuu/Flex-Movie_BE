@@ -22,14 +22,21 @@ const checkPasswordLength = (password) => {
 };
 
 const checkPlanIdValid = (planId) => {
-  if (planId < 1 || planId > 3) {
+  if (typeof planId !== "number" || planId < 1 || planId > 3) {
     throw new Error("Invalid plan id!");
   }
 }
+
+const checkOTPValid = (otpCode) => {
+  if (typeof otpCode !== "number" || otpCode < 100000 || otpCode > 999999) {
+    throw new Error("OTP must be a 6-digit number!");
+  }
+};
 
 export {
   checkNotEmpty,
   checkPasswordLength,
   checkEmailValid,
-  checkPlanIdValid
+  checkPlanIdValid,
+  checkOTPValid
 };

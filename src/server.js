@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import initAuthRoutes from './routes/auth.route.js';
 import initUsersRoutes from './routes/users.route.js';
 import initUserPlansRoutes from './routes/user_plans.route.js';
+import initPlansRoutes from './routes/plans.route.js';
 import { connectMySQL } from './config/db.js';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -31,6 +32,7 @@ app.use(morgan('dev'));
 initAuthRoutes(app);
 initUsersRoutes(app);
 initUserPlansRoutes(app);
+initPlansRoutes(app);
 
 app.get('/', (req, res) => {
   res.send('API is running');

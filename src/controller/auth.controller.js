@@ -1,9 +1,10 @@
 import {
-  registerUserService,
   loginUserService,
   loginAdminService,
   refreshAccessToken,
   logoutService,
+  initiateRegistrationService,
+  verifyOTPService,
 } from "../services/auth.service";
 
 import {
@@ -14,33 +15,6 @@ import { verifyResetPasswordTokenService } from "../services/token.service";
 import { resetPasswordService } from "../services/users.service";
 
 const REFRESH_TOKEN_TTL = parseInt(Bun.env.REFRESH_TOKEN_TTL);
-
-const registerUserController = async (req, res) => {
-  try {
-    await registerUserService(req.body);
-    return res.status(201).json({
-      statusCode: 201,
-      isSuccess: true,
-      message: "User registered successfully!",
-    });
-  } catch (err) {
-    if (err.message === "Email already exists!") {
-      return res.status(409).json({
-        statusCode: 409,
-        isSuccess: false,
-        error: "Conflict",
-        message: err.message,
-      });
-    }
-
-    return res.status(500).json({
-      statusCode: 500,
-      isSuccess: false,
-      error: "Internal Server Error",
-      message: "An unexpected error occurred. Please try again later!",
-    });
-  }
-};
 
 const loginUserController = async (req, res) => {
   try {
@@ -331,8 +305,69 @@ const resetPasswordController = async (req, res) => {
   }
 };
 
+const initiateRegistrationController = async (req, res) => {
+  try {
+    await initiateRegistrationService(req.body);
+    return res.status(200).json({
+      statusCode: 200,
+      isSuccess: true,
+      message: "Verify email sent successfully!",
+    });
+  } catch (err) {
+    if (err.message === "Email already exists!") {
+      return res.status(409).json({
+        statusCode: 409,
+        isSuccess: false,
+        error: "Conflict",
+        message: err.message,
+      });
+    }
+
+    return res.status(500).json({
+      statusCode: 500,
+      isSuccess: false,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred. Please try again later!",
+    });
+  }
+}
+
+const verifyRegistrationController = async (req, res) => {
+  try {
+    const { email, otpCode } = req.body;
+    await verifyOTPService(email, otpCode);
+    return res.status(200).json({
+      statusCode: 200,
+      isSuccess: true,
+      message: "Email verified successfully!",
+    });
+  } catch (err) {
+    if (err.message === "OTP expired!") {
+      return res.status(400).json({
+        statusCode: 400,
+        isSuccess: false,
+        error: "Bad Request",
+        message: err.message,
+      });
+    }
+    if (err.message === "Invalid OTP!") {
+      return res.status(401).json({
+        statusCode: 401,
+        isSuccess: false,
+        error: "Unauthorized",
+        message: err.message,
+      });
+    }
+    return res.status(500).json({
+      statusCode: 500,
+      isSuccess: false,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred. Please try again later!",
+    });
+  }
+}
+
 export {
-  registerUserController,
   loginUserController,
   loginAdminController,
   refreshTokenController,
@@ -340,4 +375,6 @@ export {
   sendMailResetPasswordController,
   verifyResetPasswordTokenController,
   resetPasswordController,
+  initiateRegistrationController,
+  verifyRegistrationController
 };

@@ -4,29 +4,9 @@ import bcrypt from "bcryptjs";
 import { Op } from "sequelize";
 import { getRedisValue, deleteRedisKey } from "../utils/redis.util";
 import { generateAccessToken, handleGenerateRefreshToken, verifyToken, getRemainingTTL } from "./token.service";
+import { sendVerificationEmailService } from "./mail.service";
 
 const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET;
-
-const registerUserService = async (userData) => {
-  const { email, name, password } = userData;
-
-  try {
-    const existedUser = await Users.findOne({
-      where: { email },
-    });
-    if (existedUser) {
-      throw new Error("Email already exists!");
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
-
-    await Users.create({ email, name, password: hashPassword });
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
 
 const loginUserService = async (userData) => {
   const { email, password } = userData;
@@ -164,10 +144,62 @@ const logoutService = async (refreshToken) => {
   }
 };
 
+const initiateRegistrationService = async (userData) => {
+  const { name, email, password } = userData;
+
+  try {
+    const existedUser = await Users.findOne({
+      where: { email },
+    });
+    
+    if (existedUser) {
+      throw new Error("Email already exists!");
+    }
+    
+    await sendVerificationEmailService(name, email, password);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+const verifyOTPService = async (email, otpCode) => {
+  try {
+    const storedUserData = await getRedisValue(`registration:${email}`);
+    
+    if (!storedUserData) {
+      throw new Error("OTP expired!");
+    }
+
+    const payload = JSON.parse(storedUserData);
+    
+    if (payload.otpCode !== otpCode) {
+      throw new Error("Invalid OTP!");
+    }
+    
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(payload.password, salt);
+    
+    await Users.create({ 
+      name: payload.name, 
+      email: payload.email, 
+      password: hashPassword,
+    });
+    
+    await deleteRedisKey(`registration:${email}`);
+    
+    return true;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
 export {
-  registerUserService,
   loginUserService,
   loginAdminService,
   refreshAccessToken,
   logoutService,
+  initiateRegistrationService,
+  verifyOTPService
 };
