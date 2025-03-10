@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import { createClient } from "redis";
+import { createClient } from "@redis/client";
 
 const DB_NAME = Bun.env.DB_NAME;
 const DB_USER = Bun.env.DB_USER;
@@ -13,7 +13,8 @@ const REDIS_CLOUD_PASSWORD = Bun.env.REDIS_CLOUD_PASSWORD
 
 const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
   host: DB_HOST,
-  dialect: DB_DIALECT
+  dialect: DB_DIALECT,
+  logging: false,
 });
 
 const redisClient = createClient({
@@ -35,6 +36,7 @@ const connectMySQL = async () => {
     }
     catch (err) {
         console.error("Failed to connect to MySQL:", err);
+        throw err
     }
 }
 
@@ -45,6 +47,7 @@ const connectRedis = async () => {
     }
     catch (err) {
         console.error("Failed to connect to Redis:", err);
+        throw err
     }
 }
 

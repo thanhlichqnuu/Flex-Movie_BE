@@ -1,36 +1,37 @@
-import jwt from "jsonwebtoken";
+import { verifyToken } from "../services/token.service";
 
-const authenticateAccessToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader?.split(" ")[1];
+const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET
+const authenticateAccessToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const accessToken = authHeader?.split(" ")[1];
 
-  if (!token) {
-    return res.status(401).json({
-      statusCode: 401,
-      isSuccess: false,
-      error: "Unauthorized",
-      message: "Access token is required!",
-    });
-  }
-
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) {
+    if (!accessToken) {
       return res.status(401).json({
         statusCode: 401,
         isSuccess: false,
         error: "Unauthorized",
-        message: "User is not authenticated!",
+        message: "Access token is required!",
       });
     }
 
-    req.user = user;
+    const decodedAccessToken = await verifyToken(accessToken, ACCESS_TOKEN_SECRET);
+    req.user = decodedAccessToken;
     next();
-  });
+  } catch (err) {
+    return res.status(401).json({
+      statusCode: 401,
+      isSuccess: false,
+      error: "Unauthorized",
+      message: "User is not authenticated!",
+    });
+  }
 };
+
 
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.Role.name)) {
+    if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         statusCode: 403,
         isSuccess: false,

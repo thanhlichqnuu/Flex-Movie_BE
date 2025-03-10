@@ -4,9 +4,9 @@ import {
   validate,
 } from "../middleware/auth.middleware";
 import {
-  validateEmailInput,
-  validatePasswordInput,
-  validateNameInput,
+  checkNotEmpty,
+  checkPasswordLength,
+  checkEmailValid,
 } from "../validations/auth.validation";
 import {
   registerUserController,
@@ -14,6 +14,9 @@ import {
   loginAdminController,
   refreshTokenController,
   logoutController,
+  sendMailResetPasswordController,
+  verifyResetPasswordTokenController,
+  resetPasswordController,
 } from "../controller/auth.controller";
 
 const router = express.Router();
@@ -22,9 +25,11 @@ const initAuthRoutes = (app) => {
   router.post(
     "/register",
     validate((req) => {
-      validateEmailInput(req.body.email);
-      validatePasswordInput(req.body.password);
-      validateNameInput(req.body.name);
+      checkNotEmpty(req.body.name, "Name")
+      checkNotEmpty(req.body.email, "Email");
+      checkNotEmpty(req.body.password, "Password");
+      checkEmailValid(req.body.email);
+      checkPasswordLength(req.body.password);
     }),
     registerUserController
   );
@@ -32,21 +37,49 @@ const initAuthRoutes = (app) => {
   router.post(
     "/user-login",
     validate((req) => {
-      validateEmailInput(req.body.email);
-      validatePasswordInput(req.body.password);
+      checkNotEmpty(req.body.email, "Email");
+      checkNotEmpty(req.body.password, "Password");
+      checkEmailValid(req.body.email);
+      checkPasswordLength(req.body.password);
     }),
     loginUserController
   );
   router.post(
     "/admin-login",
     validate((req) => {
-      validateEmailInput(req.body.email);
-      validatePasswordInput(req.body.password);
+      checkNotEmpty(req.body.email, "Email");
+      checkNotEmpty(req.body.password, "Password");
+      checkEmailValid(req.body.email);
+      checkPasswordLength(req.body.password);
     }),
     loginAdminController
   );
   router.post("/refresh-token", refreshTokenController);
   router.post("/logout", authenticateAccessToken, logoutController);
+  router.post(
+    "/forgot-password",
+    validate((req) => {
+      checkNotEmpty(req.body.email, "Email");
+      checkEmailValid(req.body.email);
+    }),
+    sendMailResetPasswordController
+  );
+  router.post(
+    "/verify-reset-password",
+    validate((req) => {
+      checkNotEmpty(req.body.id, "Id");
+    }),
+    verifyResetPasswordTokenController
+  );
+  router.patch(
+    "/reset-password",
+    validate((req) => {
+      checkNotEmpty(req.body.id, "Id");
+      checkNotEmpty(req.body.newPassword, "Password");
+      checkPasswordLength(req.body.newPassword);
+    }),
+    resetPasswordController
+  );
   return app.use("/api/v1/auth", router);
 };
 

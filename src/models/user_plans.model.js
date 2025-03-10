@@ -31,12 +31,12 @@ const UserPlans = sequelize.define("user_plans", {
   start_date: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: db.literal("CURRENT_TIMESTAMP"),
+    defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
   },
   end_date: {
     type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: db.literal("CURRENT_TIMESTAMP + INTERVAL 1 MONTH"),
+    defaultValue: sequelize.literal("CURRENT_TIMESTAMP + INTERVAL 1 MONTH"),
   },
 }, {
   tableName: "user_plans",

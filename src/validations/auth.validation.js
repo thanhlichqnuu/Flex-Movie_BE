@@ -1,6 +1,10 @@
-const checkEmailNotEmpty = (email) => {
-  if (!email || email.trim() === "") {
-    throw new Error("Email is required!");
+const checkNotEmpty = (field, fieldName) => {
+  if (field === undefined || field === null || field === "") {
+    throw new Error(`${fieldName} is required!`);
+  }
+
+  if (typeof field === "string" && field.trim() === "") {
+    throw new Error(`${fieldName} is required!`);
   }
 };
 
@@ -11,40 +15,21 @@ const checkEmailValid = (email) => {
   }
 };
 
-const checkPasswordNotEmpty = (password) => {
-  if (!password || password.trim() === "") {
-    throw new Error("Password is required!");
-  }
-};
-
 const checkPasswordLength = (password) => {
   if (password.length < 6) {
     throw new Error("Password must be at least 6 characters long!");
   }
 };
 
-const checkNameNotEmpty = (name) => {
-  if (!name || name.trim() === "") {
-    throw new Error("Name is required!");
+const checkPlanIdValid = (planId) => {
+  if (planId < 1 || planId > 3) {
+    throw new Error("Invalid plan id!");
   }
-};
-
-const validateEmailInput = (email) => {
-  checkEmailNotEmpty(email);
-  checkEmailValid(email);
-};
-
-const validatePasswordInput = (password) => {
-    checkPasswordNotEmpty(password);
-    checkPasswordLength(password);
-};
-
-const validateNameInput = (name) => {
-   checkNameNotEmpty(name);
-};
+}
 
 export {
-  validateEmailInput,
-  validatePasswordInput,
-  validateNameInput,
+  checkNotEmpty,
+  checkPasswordLength,
+  checkEmailValid,
+  checkPlanIdValid
 };
