@@ -2,56 +2,44 @@ import express from "express";
 import {
   getAllUsersController,
     getUserByIdController,
-    createAdminController,
     deleteUserController,
-    toggleLockUserController,
+    changePasswordController
 } from "../controller/users.controller";
-import {
-  checkNotEmpty,
-  checkPasswordLength,
-  checkEmailValid,
-} from "../validations/auth.validation";
 import { authenticateAccessToken, authorizeRoles, validate } from "../middleware/auth.middleware";
+import { checkNotEmpty, checkPasswordLength } from "../validations/auth.validation";
 
 const router = express.Router();
 
 const initUsersRoutes = (app) => {
   router.get(
-    "/get-all-users",
+    "/",
     authenticateAccessToken,
     authorizeRoles("admin"),
     getAllUsersController
   );
   router.get(
-    "/get-user-by-id/:id",
+    "/:id",
     authenticateAccessToken,
     authorizeRoles("admin", "subscriber"),
     getUserByIdController
   );
-  router.post(
-    "/create-admin",
-    validate((req) => {
-      checkNotEmpty(req.body.name, "Name")
-      checkNotEmpty(req.body.email, "Email");
-      checkNotEmpty(req.body.password, "Password");
-      checkEmailValid(req.body.email);
-      checkPasswordLength(req.body.password);
-    }),
-    authenticateAccessToken,
-    authorizeRoles("admin"),
-    createAdminController
-  );
   router.delete(
-    "/delete-user/:id",
+    "/:id",
     authenticateAccessToken,
     authorizeRoles("admin", "subscriber"),
     deleteUserController
   );
   router.patch(
-    "/lock-user/:id",
+    "/change-password/:id",
+    validate((req) => {
+      checkNotEmpty(req.body.oldPassword, "Old password");
+      checkNotEmpty(req.body.newPassword, "New password");
+      checkPasswordLength(req.body.oldPassword);
+      checkPasswordLength(req.body.newPassword);
+    }),
     authenticateAccessToken,
-    authorizeRoles("admin"),
-    toggleLockUserController
+    authorizeRoles("admin", "subscriber"),
+    changePasswordController
   );
   return app.use("/api/v1/users", router);
 };

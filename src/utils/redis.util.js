@@ -1,4 +1,4 @@
-import { connectRedis, redisClient } from "../config/db";
+import { connectRedis, redisClient } from "../config/redis.config";
 
 const getRedisValue = async (key) => {
   try {
@@ -7,7 +7,6 @@ const getRedisValue = async (key) => {
     }
     return redisClient.get(key);
   } catch (err) {
-    console.error(err);
     throw err
   }
 };
@@ -19,7 +18,6 @@ const storeRedisKey = async (key, value, ttl) => {
     }
     await redisClient.set(key, JSON.stringify(value), { EX: ttl });
   } catch (err) {
-    console.error(err);
     throw err
   }
 };
@@ -31,7 +29,6 @@ const deleteRedisKey = async (key) => {
     }
     await redisClient.del(key);
   } catch (err) {
-    console.error(err);
     throw err
   }
 };

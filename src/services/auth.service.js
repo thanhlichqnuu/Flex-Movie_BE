@@ -3,8 +3,16 @@ import Roles from "../models/roles.model";
 import bcrypt from "bcryptjs";
 import { Op } from "sequelize";
 import { getRedisValue, deleteRedisKey } from "../utils/redis.util";
-import { generateAccessToken, handleGenerateRefreshToken, verifyToken, getRemainingTTL } from "./token.service";
-import { sendVerificationEmailService } from "./mail.service";
+import {
+  generateAccessTokenService,
+  handleGenerateRefreshTokenService,
+  verifyTokenService,
+  getRemainingTTLService,
+} from "./token.service";
+import {
+  sendMailResetPasswordService,
+  sendVerificationEmailService,
+} from "./mail.service";
 
 const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET;
 
@@ -32,12 +40,11 @@ const loginUserService = async (userData) => {
       throw new Error("Incorrect email or password!");
     }
 
-    const accessToken = generateAccessToken(user);
-    const refreshToken = await handleGenerateRefreshToken(user);
+    const accessToken = generateAccessTokenService(user);
+    const refreshToken = await handleGenerateRefreshTokenService(user);
 
     return { accessToken, refreshToken };
   } catch (err) {
-    console.error(err);
     throw err;
   }
 };
@@ -65,12 +72,11 @@ const loginAdminService = async (userData) => {
       throw new Error("Incorrect email or password!");
     }
 
-    const accessToken = generateAccessToken(user);
-    const refreshToken = await handleGenerateRefreshToken(user);
+    const accessToken = generateAccessTokenService(user);
+    const refreshToken = await handleGenerateRefreshTokenService(user);
 
     return { accessToken, refreshToken };
   } catch (err) {
-    console.error(err);
     throw err;
   }
 };
@@ -88,11 +94,14 @@ const refreshAccessToken = async (oldRefreshToken) => {
 
     let decodedRefreshToken;
     try {
-      decodedRefreshToken = await verifyToken(oldRefreshToken, REFRESH_TOKEN_SECRET);
+      decodedRefreshToken = await verifyTokenService(
+        oldRefreshToken,
+        REFRESH_TOKEN_SECRET
+      );
     } catch (err) {
       throw new Error("Invalid refresh token!");
     }
- 
+
     const payload = JSON.parse(storedOldRefreshToken);
 
     const user = await Users.findOne({
@@ -104,18 +113,21 @@ const refreshAccessToken = async (oldRefreshToken) => {
 
     if (!user) {
       throw new Error("User not found!");
-    } 
+    }
 
     await deleteRedisKey(oldRefreshToken);
 
-    const remainingRefreshTokenTTL = getRemainingTTL(decodedRefreshToken);
+    const remainingRefreshTokenTTL =
+      getRemainingTTLService(decodedRefreshToken);
 
-    const newAccessToken = generateAccessToken(user);
-    const newRefreshToken = await handleGenerateRefreshToken(user, remainingRefreshTokenTTL);
+    const newAccessToken = generateAccessTokenService(user);
+    const newRefreshToken = await handleGenerateRefreshTokenService(
+      user,
+      remainingRefreshTokenTTL
+    );
 
     return { newAccessToken, newRefreshToken };
   } catch (err) {
-    console.error(err);
     throw err;
   }
 };
@@ -132,14 +144,29 @@ const logoutService = async (refreshToken) => {
     }
 
     try {
-      await verifyToken(refreshToken, REFRESH_TOKEN_SECRET);
+      await verifyTokenService(refreshToken, REFRESH_TOKEN_SECRET);
     } catch (err) {
       throw new Error("Invalid refresh token!");
     }
 
     await deleteRedisKey(refreshToken);
   } catch (err) {
-    console.error(err);
+    throw err;
+  }
+};
+
+const initiateResetPasswordService = async (email) => {
+  try {
+    const existedUser = await Users.findOne({
+      where: { email },
+    });
+
+    if (!existedUser) {
+      throw new Error("User not found!");
+    }
+
+    await sendMailResetPasswordService(email);
+  } catch (err) {
     throw err;
   }
 };
@@ -151,46 +178,35 @@ const initiateRegistrationService = async (userData) => {
     const existedUser = await Users.findOne({
       where: { email },
     });
-    
+
     if (existedUser) {
       throw new Error("Email already exists!");
     }
-    
+
     await sendVerificationEmailService(name, email, password);
   } catch (err) {
-    console.error(err);
     throw err;
   }
 };
 
-const verifyOTPService = async (email, otpCode) => {
+const verifyOTPService = async (email, otpCode, keyRedis) => {
   try {
-    const storedUserData = await getRedisValue(`registration:${email}`);
-    
+    const storedUserData = await getRedisValue(`${keyRedis}:${email}`);
+
     if (!storedUserData) {
-      throw new Error("OTP expired!");
+      throw new Error("Invalid OTP!");
     }
 
     const payload = JSON.parse(storedUserData);
-    
+
     if (payload.otpCode !== otpCode) {
       throw new Error("Invalid OTP!");
     }
-    
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(payload.password, salt);
-    
-    await Users.create({ 
-      name: payload.name, 
-      email: payload.email, 
-      password: hashPassword,
-    });
-    
-    await deleteRedisKey(`registration:${email}`);
-    
-    return true;
+
+    await deleteRedisKey(`${keyRedis}:${email}`);
+
+    return payload;
   } catch (err) {
-    console.error(err);
     throw err;
   }
 };
@@ -200,6 +216,7 @@ export {
   loginAdminService,
   refreshAccessToken,
   logoutService,
+  initiateResetPasswordService,
   initiateRegistrationService,
-  verifyOTPService
+  verifyOTPService,
 };

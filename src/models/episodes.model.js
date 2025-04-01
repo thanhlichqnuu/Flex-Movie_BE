@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
-import { sequelize } from "../config/db";
-import Movies from "./movies.model.js";
+import { sequelize } from "../config/sequelize.config";
+import Movies from "./movies.model";
 
 const Episodes = sequelize.define("episodes", {
   id: {
@@ -16,7 +16,6 @@ const Episodes = sequelize.define("episodes", {
   slug: {
     type: DataTypes.STRING(255),
     allowNull: false,
-    unique: true,
   },
   link_m3u8: {
     type: DataTypes.TEXT,

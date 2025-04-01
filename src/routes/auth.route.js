@@ -14,18 +14,18 @@ import {
   loginAdminController,
   refreshTokenController,
   logoutController,
-  sendMailResetPasswordController,
-  verifyResetPasswordTokenController,
+  initiateResetPasswordController,
   resetPasswordController,
   initiateRegistrationController,
-  verifyRegistrationController
+  verifyRegistrationController,
+  verifyRegistrationAdminController
 } from "../controller/auth.controller";
 
 const router = express.Router();
 
 const initAuthRoutes = (app) => {
   router.post(
-    "/user-login",
+    "/login",
     validate((req) => {
       checkNotEmpty(req.body.email, "Email");
       checkNotEmpty(req.body.password, "Password");
@@ -35,7 +35,7 @@ const initAuthRoutes = (app) => {
     loginUserController
   );
   router.post(
-    "/admin-login",
+    "/admin/login",
     validate((req) => {
       checkNotEmpty(req.body.email, "Email");
       checkNotEmpty(req.body.password, "Password");
@@ -44,7 +44,7 @@ const initAuthRoutes = (app) => {
     }),
     loginAdminController
   );
-  router.post("/refresh-token", refreshTokenController);
+  router.post("/token", refreshTokenController);
   router.post("/logout", authenticateAccessToken, logoutController);
   router.post(
     "/forgot-password",
@@ -52,21 +52,17 @@ const initAuthRoutes = (app) => {
       checkNotEmpty(req.body.email, "Email");
       checkEmailValid(req.body.email);
     }),
-    sendMailResetPasswordController
-  );
-  router.post(
-    "/verify-reset-password",
-    validate((req) => {
-      checkNotEmpty(req.body.id, "Id");
-    }),
-    verifyResetPasswordTokenController
+    initiateResetPasswordController
   );
   router.patch(
     "/reset-password",
     validate((req) => {
-      checkNotEmpty(req.body.id, "Id");
-      checkNotEmpty(req.body.newPassword, "Password");
+      checkNotEmpty(req.body.email, "Email");
+      checkNotEmpty(req.body.newPassword, "New password");
+      checkNotEmpty(req.body.otpCode, "OTP");
+      checkEmailValid(req.body.email);
       checkPasswordLength(req.body.newPassword);
+      checkOTPValid(req.body.otpCode);
     }),
     resetPasswordController
   );
@@ -85,11 +81,21 @@ const initAuthRoutes = (app) => {
     "/verify-registration",
     validate((req) => {
       checkNotEmpty(req.body.email, "Email");
-      checkEmailValid(req.body.email);
       checkNotEmpty(req.body.otpCode, "OTP");
+      checkEmailValid(req.body.email);
       checkOTPValid(req.body.otpCode);
     }),
     verifyRegistrationController
+  );
+  router.post(
+    "/admin/verify-registration",
+    validate((req) => {
+      checkNotEmpty(req.body.email, "Email");
+      checkNotEmpty(req.body.otpCode, "OTP");
+      checkEmailValid(req.body.email);
+      checkOTPValid(req.body.otpCode);
+    }),
+    verifyRegistrationAdminController
   );
   return app.use("/api/v1/auth", router);
 };

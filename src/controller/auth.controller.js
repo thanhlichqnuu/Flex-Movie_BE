@@ -3,23 +3,20 @@ import {
   loginAdminService,
   refreshAccessToken,
   logoutService,
+  initiateResetPasswordService,
   initiateRegistrationService,
   verifyOTPService,
 } from "../services/auth.service";
 
-import {
-  sendMailResetPasswordService,
-} from "../services/mail.service";
-
-import { verifyResetPasswordTokenService } from "../services/token.service";
+import { createUserService } from "../services/users.service";
 import { resetPasswordService } from "../services/users.service";
 
 const REFRESH_TOKEN_TTL = parseInt(Bun.env.REFRESH_TOKEN_TTL);
 
 const loginUserController = async (req, res) => {
+  const isMobile = req.headers["x-client-type"] === "mobile";
   try {
     const { accessToken, refreshToken } = await loginUserService(req.body);
-    const isMobile = req.headers['x-client-type'] === 'mobile';
 
     if (isMobile) {
       return res.status(200).json({
@@ -30,12 +27,12 @@ const loginUserController = async (req, res) => {
     } else {
       const cookieOptions = {
         httpOnly: true,
-        secure: false, 
-        sameSite: 'lax',
+        secure: false,
+        sameSite: "lax",
         maxAge: REFRESH_TOKEN_TTL * 1000,
-        path: '/',
+        path: "/",
       };
-      await res.cookie('refreshToken', refreshToken, cookieOptions);
+      await res.cookie("refreshToken", refreshToken, cookieOptions);
 
       return res.status(200).json({
         statusCode: 200,
@@ -44,19 +41,19 @@ const loginUserController = async (req, res) => {
       });
     }
   } catch (err) {
-    if (err.message === 'Incorrect email or password!') {
+    if (err.message === "Incorrect email or password!") {
       return res.status(401).json({
         statusCode: 401,
         isSuccess: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
         message: err.message,
       });
     }
     return res.status(500).json({
       statusCode: 500,
       isSuccess: false,
-      error: 'Internal Server Error',
-      message: 'An unexpected error occurred. Please try again later!',
+      error: "Internal Server Error",
+      message: "An unexpected error occurred. Please try again later!",
     });
   }
 };
@@ -97,16 +94,18 @@ const loginAdminController = async (req, res) => {
 };
 
 const refreshTokenController = async (req, res) => {
+  const isMobile = req.headers["x-client-type"] === "mobile";
   try {
-    const isMobile = req.headers['x-client-type'] === 'mobile';
     let refreshToken;
     if (isMobile) {
-      refreshToken = req.body.refreshToken; 
+      refreshToken = req.body.refreshToken;
     } else {
-      refreshToken = req.cookies.refreshToken; 
+      refreshToken = req.cookies.refreshToken;
     }
 
-    const { newAccessToken, newRefreshToken } = await refreshAccessToken(refreshToken);
+    const { newAccessToken, newRefreshToken } = await refreshAccessToken(
+      refreshToken
+    );
 
     if (isMobile) {
       return res.status(200).json({
@@ -118,11 +117,11 @@ const refreshTokenController = async (req, res) => {
       const cookieOptions = {
         httpOnly: true,
         secure: false,
-        sameSite: 'lax',
+        sameSite: "lax",
         maxAge: REFRESH_TOKEN_TTL * 1000,
-        path: '/',
+        path: "/",
       };
-      await res.cookie('refreshToken', newRefreshToken, cookieOptions);
+      await res.cookie("refreshToken", newRefreshToken, cookieOptions);
 
       return res.status(200).json({
         statusCode: 200,
@@ -131,19 +130,19 @@ const refreshTokenController = async (req, res) => {
       });
     }
   } catch (err) {
-    if (err.message === 'Refresh token is required!') {
+    if (err.message === "Refresh token is required!") {
       return res.status(400).json({
         statusCode: 400,
         isSuccess: false,
-        error: 'Bad Request',
+        error: "Bad Request",
         message: err.message,
       });
     }
-    if (err.message === 'Invalid refresh token!') {
+    if (err.message === "Invalid refresh token!") {
       return res.status(401).json({
         statusCode: 401,
         isSuccess: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
         message: err.message,
       });
     }
@@ -151,15 +150,15 @@ const refreshTokenController = async (req, res) => {
     return res.status(500).json({
       statusCode: 500,
       isSuccess: false,
-      error: 'Internal Server Error',
-      message: 'An unexpected error occurred. Please try again later!',
+      error: "Internal Server Error",
+      message: "An unexpected error occurred. Please try again later!",
     });
   }
 };
 
 const logoutController = async (req, res) => {
+  const isMobile = req.headers["x-client-type"] === "mobile";
   try {
-    const isMobile = req.headers['x-client-type'] === 'mobile';
     let refreshToken;
 
     if (isMobile) {
@@ -183,7 +182,7 @@ const logoutController = async (req, res) => {
         sameSite: "lax",
         path: "/",
       });
-      return res.status(204).end(); 
+      return res.status(204).end();
     }
   } catch (err) {
     if (err.message === "Refresh token is required!") {
@@ -194,11 +193,11 @@ const logoutController = async (req, res) => {
         message: err.message,
       });
     }
-    if (err.message === 'Invalid refresh token!') {
+    if (err.message === "Invalid refresh token!") {
       return res.status(401).json({
         statusCode: 401,
         isSuccess: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
         message: err.message,
       });
     }
@@ -211,10 +210,10 @@ const logoutController = async (req, res) => {
   }
 };
 
-const sendMailResetPasswordController = async (req, res) => {
+const initiateResetPasswordController = async (req, res) => {
   try {
     const { email } = req.body;
-    await sendMailResetPasswordService({ email });
+    await initiateResetPasswordService(email);
     return res.status(200).json({
       statusCode: 200,
       isSuccess: true,
@@ -229,43 +228,6 @@ const sendMailResetPasswordController = async (req, res) => {
         message: err.message,
       });
     }
-    return res.status(500).json({
-      statusCode: 500,
-      isSuccess: false,
-      error: "Internal Server Error",
-      message: "An unexpected error occurred. Please try again later!",
-    });
-  }
-};
-
-const verifyResetPasswordTokenController = async (req, res) => {
-  const { id, token } = req.body;
-  try {
-    const isVerified = await verifyResetPasswordTokenService(id, token);
-    if (isVerified) {
-      return res.status(200).json({
-        statusCode: 200,
-        isSuccess: true,
-        message: "Valid reset password token!",
-      });
-    }
-  } catch (err) {
-    if (err.message === "Reset password token is required!") {
-      return res.status(400).json({
-        statusCode: 400,
-        isSuccess: false,
-        error: "Bad Request",
-        message: err.message,
-      });
-    }
-    if (err.message === "Invalid reset password token!") {
-      return res.status(401).json({
-        statusCode: 401,
-        isSuccess: false,
-        error: "Unauthorized",
-        message: err.message,
-      });
-    }
 
     return res.status(500).json({
       statusCode: 500,
@@ -277,15 +239,18 @@ const verifyResetPasswordTokenController = async (req, res) => {
 };
 
 const resetPasswordController = async (req, res) => {
-  const { id, newPassword } = req.body;
   try {
-    await resetPasswordService(id, newPassword);
+    const { email, newPassword, otpCode } = req.body;
+    const userData = await verifyOTPService(email, otpCode, "resetpassword");
+    if (userData) {
+      await resetPasswordService(email, newPassword);
 
-    return res.status(200).json({
-      statusCode: 200,
-      isSuccess: true,
-      message: "Password reset successfully!",
-    });
+      return res.status(200).json({
+        statusCode: 200,
+        isSuccess: true,
+        message: "Password reset successfully!",
+      });
+    }
   } catch (err) {
     if (err.message === "User not found!") {
       return res.status(404).json({
@@ -295,7 +260,14 @@ const resetPasswordController = async (req, res) => {
         message: err.message,
       });
     }
-
+    if (err.message === "Invalid OTP!") {
+      return res.status(401).json({
+        statusCode: 401,
+        isSuccess: false,
+        error: "Unauthorized",
+        message: err.message,
+      });
+    }
     return res.status(500).json({
       statusCode: 500,
       isSuccess: false,
@@ -330,26 +302,19 @@ const initiateRegistrationController = async (req, res) => {
       message: "An unexpected error occurred. Please try again later!",
     });
   }
-}
+};
 
 const verifyRegistrationController = async (req, res) => {
   try {
     const { email, otpCode } = req.body;
-    await verifyOTPService(email, otpCode);
+    const userData = await verifyOTPService(email, otpCode, "registration");
+    await createUserService(userData);
     return res.status(200).json({
       statusCode: 200,
       isSuccess: true,
       message: "Email verified successfully!",
     });
   } catch (err) {
-    if (err.message === "OTP expired!") {
-      return res.status(400).json({
-        statusCode: 400,
-        isSuccess: false,
-        error: "Bad Request",
-        message: err.message,
-      });
-    }
     if (err.message === "Invalid OTP!") {
       return res.status(401).json({
         statusCode: 401,
@@ -365,16 +330,44 @@ const verifyRegistrationController = async (req, res) => {
       message: "An unexpected error occurred. Please try again later!",
     });
   }
-}
+};
+
+const verifyRegistrationAdminController = async (req, res) => {
+  try {
+    const { email, otpCode } = req.body;
+    const userData = await verifyOTPService(email, otpCode, "registration");
+    await createUserService(userData, 1);
+    return res.status(200).json({
+      statusCode: 200,
+      isSuccess: true,
+      message: "Email verified successfully!",
+    });
+  } catch (err) {
+    if (err.message === "Invalid OTP!") {
+      return res.status(401).json({
+        statusCode: 401,
+        isSuccess: false,
+        error: "Unauthorized",
+        message: err.message,
+      });
+    }
+    return res.status(500).json({
+      statusCode: 500,
+      isSuccess: false,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred. Please try again later!",
+    });
+  }
+};
 
 export {
   loginUserController,
   loginAdminController,
   refreshTokenController,
   logoutController,
-  sendMailResetPasswordController,
-  verifyResetPasswordTokenController,
+  initiateResetPasswordController,
   resetPasswordController,
   initiateRegistrationController,
-  verifyRegistrationController
+  verifyRegistrationController,
+  verifyRegistrationAdminController,
 };

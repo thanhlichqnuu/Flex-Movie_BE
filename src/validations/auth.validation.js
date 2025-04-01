@@ -1,9 +1,5 @@
 const checkNotEmpty = (field, fieldName) => {
-  if (field === undefined || field === null || field === "") {
-    throw new Error(`${fieldName} is required!`);
-  }
-
-  if (typeof field === "string" && field.trim() === "") {
+  if (!field || (typeof field === "string" && field.trim() === "")) {
     throw new Error(`${fieldName} is required!`);
   }
 };
@@ -22,14 +18,59 @@ const checkPasswordLength = (password) => {
 };
 
 const checkPlanIdValid = (planId) => {
-  if (typeof planId !== "number" || planId < 1 || planId > 3) {
+  if (!Number.isInteger(planId) || planId < 1 || planId > 3) {
     throw new Error("Invalid plan id!");
   }
-}
+};
 
 const checkOTPValid = (otpCode) => {
-  if (typeof otpCode !== "number" || otpCode < 100000 || otpCode > 999999) {
-    throw new Error("OTP must be a 6-digit number!");
+  if (typeof otpCode !== 'string' || otpCode.length !== 6 || !/^\d+$/.test(otpCode)) {
+    throw new Error("OTP must be a 6-digit string!");
+  }
+};
+
+const checkMovieStatusValid = (status) => {
+  if (!Number.isInteger(status) || status < 1 || status > 3) {
+    throw new Error("Invalid movie status!");
+  }
+};
+
+const checkMovieReleaseYearValid = (year) => {
+  if (!Number.isInteger(year) || year < 1000 || year > 9999) {
+    throw new Error("Release year must be a 4-digit number!");
+  }
+};
+
+const checkVideoNotEmpty = (file, fieldName) => {
+  if (!file) {
+    throw new Error(`${fieldName} is required!`);
+  }
+};
+
+const checkImageNotEmpty = (files, fieldName) => { 
+  if (!files?.[fieldName]?.length) { 
+    throw new Error(`${fieldName} is required!`); 
+  } 
+};
+
+const checkGenresValid = (field, fieldName) => {
+  if (!field) {
+    throw new Error(`${fieldName} is required!`);
+  }
+  if (!Array.isArray(field)) {
+    throw new Error(`${fieldName} must be an array!`);
+  }
+  if (field.length === 0) {
+    throw new Error(`${fieldName} must not be empty!`);
+  }
+  if (!field.every(Number.isInteger)) {
+    throw new Error(`${fieldName} must contain only integers!`);
+  }
+};
+
+const checkIntegerNumber = (field, fieldName) => {
+  if (!Number.isInteger(field)) {
+    throw new Error(`${fieldName} must be an integer!`);
   }
 };
 
@@ -38,5 +79,11 @@ export {
   checkPasswordLength,
   checkEmailValid,
   checkPlanIdValid,
-  checkOTPValid
+  checkOTPValid,
+  checkMovieStatusValid,
+  checkMovieReleaseYearValid,
+  checkVideoNotEmpty,
+  checkImageNotEmpty,
+  checkGenresValid,
+  checkIntegerNumber
 };

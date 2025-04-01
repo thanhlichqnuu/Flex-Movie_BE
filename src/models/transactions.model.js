@@ -3,7 +3,7 @@ import { sequelize } from "../config/sequelize.config";
 import Users from "./users.model";
 import Plans from "./plans.model";
 
-const UserPlans = sequelize.define("user_plans", {
+const Transactions = sequelize.define("transactions", {
   id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -28,22 +28,31 @@ const UserPlans = sequelize.define("user_plans", {
     },
     onDelete: "CASCADE",
   },
-  start_date: {
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  order_code: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    unique: true,
+  },
+  status: {
+    type: DataTypes.ENUM("pending", "paid", "cancelled"),
+    allowNull: false,
+    defaultValue: "pending",
+  },
+  created_at: {
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: sequelize.literal("CURRENT_TIMESTAMP"),
   },
-  end_date: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: sequelize.literal("CURRENT_TIMESTAMP + INTERVAL 1 MONTH"),
-  },
 }, {
-  tableName: "user_plans",
+  tableName: "transactions",
   timestamps: false,
 });
 
-UserPlans.belongsTo(Users, { foreignKey: "user_id" });
-UserPlans.belongsTo(Plans, { foreignKey: "plan_id" });
+Transactions.belongsTo(Users, { foreignKey: "user_id" });
+Transactions.belongsTo(Plans, { foreignKey: "plan_id" });
 
-export default UserPlans;
+export default Transactions;

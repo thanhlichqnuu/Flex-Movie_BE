@@ -1,8 +1,8 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../config/sequelize.config";
 
-const Roles = sequelize.define(
-  "Roles",
+const MovieGenres = sequelize.define(
+  "movie_genres",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -10,16 +10,19 @@ const Roles = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING(255),
+    movie_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      unique: true,
+    },
+    genre_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
   },
   {
-    tableName: "roles",
+    tableName: "movie_genres",
     timestamps: false,
   }
 );
 
-export default Roles;
+export default MovieGenres;
