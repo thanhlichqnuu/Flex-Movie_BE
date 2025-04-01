@@ -2,6 +2,10 @@
   "name": "flex-movie_be",
   "module": "server.js",
   "type": "module",
+  "scripts": {
+    "start": "bun run server.js",
+    "dev": "bun --hot run server.js"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
