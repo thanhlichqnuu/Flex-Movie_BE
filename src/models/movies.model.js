@@ -34,8 +34,7 @@ const Movies = sequelize.define(
     },
     trailer_url: {
       type: DataTypes.TEXT,
-      allowNull: false,
-      defaultValue: "Đang cập nhật",
+      allowNull: true,
     },
     description: {
       type: DataTypes.TEXT,
