@@ -170,11 +170,7 @@ const logoutController = async (req, res) => {
     await logoutService(refreshToken);
 
     if (isMobile) {
-      return res.status(200).json({
-        statusCode: 200,
-        isSuccess: true,
-        message: "Logout successfully!",
-      });
+      return res.status(204).end();
     } else {
       await res.clearCookie("refreshToken", {
         httpOnly: true,
