@@ -13,7 +13,6 @@ const initPlansRoutes = (app) => {
   router.get(
     "/",
     authenticateAccessToken,
-    authorizeRoles("admin"),
     getAllPlansController
   );
   router.post(

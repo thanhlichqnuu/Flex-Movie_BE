@@ -24,7 +24,7 @@ const initEpisodesRoutes = (app) => {
   router.get(
     "/:id",
     authenticateAccessToken,
-    authorizeRoles("admin"),
+    authorizeRoles("admin", "subscriber"),
     getEpisodesByMovieController
   );
   router.post(
