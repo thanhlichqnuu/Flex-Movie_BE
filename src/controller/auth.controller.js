@@ -278,7 +278,7 @@ const initiateRegistrationController = async (req, res) => {
     return res.status(200).json({
       statusCode: 200,
       isSuccess: true,
-      message: "Verify email sent successfully!",
+      message: "Verification email sent successfully!",
     });
   } catch (err) {
     if (err.message === "Email already exists!") {
@@ -286,6 +286,33 @@ const initiateRegistrationController = async (req, res) => {
         statusCode: 409,
         isSuccess: false,
         error: "Conflict",
+        message: err.message,
+      });
+    }
+
+    return res.status(500).json({
+      statusCode: 500,
+      isSuccess: false,
+      error: "Internal Server Error",
+      message: "An unexpected error occurred. Please try again later!",
+    });
+  }
+};
+
+const resendRegistrationOTPController = async (req, res) => {
+  try {
+    await initiateRegistrationService({...req.body, resend: true});
+    return res.status(200).json({
+      statusCode: 200,
+      isSuccess: true,
+      message: "Verification email resent successfully!",
+    });
+  } catch (err) {
+    if (err.message === "Invalid email verification!") {
+      return res.status(400).json({
+        statusCode: 400,
+        isSuccess: false,
+        error: "Bad Request",
         message: err.message,
       });
     }
@@ -363,6 +390,7 @@ export {
   initiateResetPasswordController,
   resetPasswordController,
   initiateRegistrationController,
+  resendRegistrationOTPController,
   verifyRegistrationController,
   verifyRegistrationAdminController,
 };

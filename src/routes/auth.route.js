@@ -7,7 +7,7 @@ import {
   checkNotEmpty,
   checkPasswordLength,
   checkEmailValid,
-  checkOTPValid
+  checkOTPValid,
 } from "../validations/auth.validation";
 import {
   loginUserController,
@@ -17,8 +17,9 @@ import {
   initiateResetPasswordController,
   resetPasswordController,
   initiateRegistrationController,
+  resendRegistrationOTPController,
   verifyRegistrationController,
-  verifyRegistrationAdminController
+  verifyRegistrationAdminController,
 } from "../controller/auth.controller";
 
 const router = express.Router();
@@ -69,13 +70,21 @@ const initAuthRoutes = (app) => {
   router.post(
     "/register",
     validate((req) => {
-      checkNotEmpty(req.body.name, "Name")
+      checkNotEmpty(req.body.name, "Name");
       checkNotEmpty(req.body.email, "Email");
       checkNotEmpty(req.body.password, "Password");
       checkEmailValid(req.body.email);
       checkPasswordLength(req.body.password);
     }),
     initiateRegistrationController
+  );
+  router.post(
+    "/resend-registration",
+    validate((req) => {
+      checkNotEmpty(req.body.email, "Email");
+      checkEmailValid(req.body.email);
+    }),
+    resendRegistrationOTPController
   );
   router.post(
     "/verify-registration",

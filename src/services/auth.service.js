@@ -172,15 +172,28 @@ const initiateResetPasswordService = async (email) => {
 };
 
 const initiateRegistrationService = async (userData) => {
-  const { name, email, password } = userData;
+  const { name, email, password, resend = false } = userData;
 
   try {
     const existedUser = await Users.findOne({
       where: { email },
     });
 
-    if (existedUser) {
+    if (!resend && existedUser) {
       throw new Error("Email already exists!");
+    }
+
+    if (resend) {
+      const storedUserData = await getRedisValue(`registration:${email}`);
+      
+      if (!storedUserData) {
+        throw new Error("Invalid email verification!");
+      }
+      
+      const payload = JSON.parse(storedUserData);
+      
+      await sendVerificationEmailService(payload.name, email, payload.password);
+      return;
     }
 
     await sendVerificationEmailService(name, email, password);
