@@ -9,16 +9,18 @@ import { initDir, removeFolderTemp } from "../utils/multer.util";
 
 const UPLOAD_VIDEO_DIR = Bun.env.UPLOAD_VIDEO_DIR;
 
-const getEpisodesByMovieService = async (movieId) => {
+const getEpisodesByMovieService = async (slugMovie) => {
   try {
-    const movie = await Movies.findByPk(movieId);
+    const movie = await Movies.findOne({
+      where: { slug: slugMovie },
+    });
 
     if (!movie) {
       throw new Error("Movie not found!");
     }
 
     const listEpisode = await Episodes.findAll({
-      where: { movie_id: movieId },
+      where: { movie_id: movie.id },
       order: [["id", "ASC"]],
       attributes: { exclude: ["movie_id"] },
     });

@@ -1,17 +1,17 @@
 import {
-  getAllSubscriptionsByUserIdService,
+  getSubscriptionByUserIdService,
   deactivateSubscriptionService,
-} from "../services/user_plans.service";
+} from "../services/subscriptions.service";
 
-const getAllSubscriptionsByUserIdController = async (req, res) => {
+const getSubscriptionByUserIdController = async (req, res) => {
   try {
-    const subscriptions = await getAllSubscriptionsByUserIdService(
+    const subscription = await getSubscriptionByUserIdService(
       req.params.id
     );
     return res.status(200).json({
       statusCode: 200,
       isSuccess: true,
-      result: subscriptions,
+      result: subscription,
     });
   } catch (err) {
     if (err.message === "User not found!") {
@@ -37,7 +37,7 @@ const deactivateSubscriptionController = async (req, res) => {
 
     return res.status(204).end();
   } catch (err) {
-    if (err.message === "Subscription plan not found!") {
+    if (err.message === "Subscription not found!") {
       return res.status(404).json({
         statusCode: 404,
         isSuccess: false,
@@ -55,6 +55,6 @@ const deactivateSubscriptionController = async (req, res) => {
 };
 
 export {
-  getAllSubscriptionsByUserIdController,
+  getSubscriptionByUserIdController,
   deactivateSubscriptionController,
 };

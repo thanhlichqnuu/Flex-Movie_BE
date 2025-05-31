@@ -92,9 +92,10 @@ const getAllMoviesService = async (
   }
 };
 
-const getMovieByIdService = async (movieId) => {
+const getMovieBySlugService = async (slugMovie) => {
   try {
-    const movie = await Movies.findByPk(movieId, {
+    const movie = await Movies.findOne({
+      where: { slug: slugMovie },
       attributes: { exclude: ["created_at", "updated_at"] },
       include: [
         {
@@ -365,7 +366,7 @@ const deleteMovieService = async (movieId) => {
       transaction,
     });
 
-    await movie.destroy({ transaction })
+    await movie.destroy({ transaction });
     await Promise.all([deleteImage(thumbUrl), deleteImage(posterUrl)]);
 
     await transaction.commit();
@@ -377,7 +378,7 @@ const deleteMovieService = async (movieId) => {
 
 export {
   getAllMoviesService,
-  getMovieByIdService,
+  getMovieBySlugService,
   createMovieService,
   updateMovieService,
   deleteMovieService,

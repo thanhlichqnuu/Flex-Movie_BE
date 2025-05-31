@@ -23,7 +23,7 @@ const createPaymentLink = async (orderCode, amount, description) => {
 
 const verifyPayment = async (orderCode) => {
   try {
-    const res = payos.getPaymentLinkInformation(orderCode);
+    const res = await payos.getPaymentLinkInformation(orderCode);
     return res;
   } catch (err) {
     throw err;

@@ -40,7 +40,7 @@ const loginUserService = async (userData) => {
       throw new Error("Incorrect email or password!");
     }
 
-    const accessToken = generateAccessTokenService(user);
+    const accessToken = await generateAccessTokenService(user);
     const refreshToken = await handleGenerateRefreshTokenService(user);
 
     return { accessToken, refreshToken };
@@ -72,7 +72,7 @@ const loginAdminService = async (userData) => {
       throw new Error("Incorrect email or password!");
     }
 
-    const accessToken = generateAccessTokenService(user);
+    const accessToken = await generateAccessTokenService(user);
     const refreshToken = await handleGenerateRefreshTokenService(user);
 
     return { accessToken, refreshToken };
@@ -120,7 +120,7 @@ const refreshAccessToken = async (oldRefreshToken) => {
     const remainingRefreshTokenTTL =
       getRemainingTTLService(decodedRefreshToken);
 
-    const newAccessToken = generateAccessTokenService(user);
+    const newAccessToken = await generateAccessTokenService(user);
     const newRefreshToken = await handleGenerateRefreshTokenService(
       user,
       remainingRefreshTokenTTL

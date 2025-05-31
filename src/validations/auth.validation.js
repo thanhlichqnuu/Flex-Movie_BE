@@ -17,12 +17,6 @@ const checkPasswordLength = (password) => {
   }
 };
 
-const checkPlanIdValid = (planId) => {
-  if (!Number.isInteger(planId) || planId < 1 || planId > 3) {
-    throw new Error("Invalid plan id!");
-  }
-};
-
 const checkOTPValid = (otpCode) => {
   if (typeof otpCode !== 'string' || otpCode.length !== 6 || !/^\d+$/.test(otpCode)) {
     throw new Error("OTP must be a 6-digit string!");
@@ -78,7 +72,6 @@ export {
   checkNotEmpty,
   checkPasswordLength,
   checkEmailValid,
-  checkPlanIdValid,
   checkOTPValid,
   checkMovieStatusValid,
   checkMovieReleaseYearValid,

@@ -9,6 +9,20 @@ const getAllPlansService = async () => {
   }
 };
 
+const getPlanByIdService = async (planId) => {
+  try {
+    const plan = await Plans.findByPk(planId);
+
+    if (!plan) {
+      throw new Error("Plan not found!");
+    }
+
+    return plan;
+  } catch (err) {
+    throw err;
+  }
+}
+
 const createPlanService = async (planData) => {
   try {
     await Plans.create(planData);
@@ -55,4 +69,4 @@ const deletePlanService = async (planId) => {
   }
 };
 
-export { getAllPlansService, createPlanService, updatePlanService, deletePlanService };
+export { getAllPlansService, getPlanByIdService, createPlanService, updatePlanService, deletePlanService };

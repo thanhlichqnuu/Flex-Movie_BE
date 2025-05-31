@@ -47,7 +47,7 @@ const verifyTransactionController = async (req, res) => {
       );
     }
   } catch (err) {
-    if (err.message === "Transaction not found!") {
+    if (err.message === "Transaction not found!" || err.message === "User not found!") {
       return res.status(404).json({
         statusCode: 404,
         isSuccess: false,

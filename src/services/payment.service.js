@@ -4,10 +4,11 @@ import Plans from "../models/plans.model";
 import { sequelize } from "../config/sequelize.config";
 import { createPaymentLink, verifyPayment } from "./payos.service";
 import {
+  getSubscriptionByUserIdService,
   activateSubscriptionService,
-  upgradeSubscriptionService,
-} from "./user_plans.service";
-import UserPlans from "../models/user_plans.model";
+  deactivateSubscriptionService
+} from "./subscriptions.service";
+import { getPlanByIdService } from "./plans.service";
 
 const createTransactionService = async (userId, planId) => {
   const transaction = await sequelize.transaction();
@@ -20,12 +21,20 @@ const createTransactionService = async (userId, planId) => {
     if (!plan) {
       throw new Error("Plan not found!");
     }
+
     const orderCode = Number(String(new Date().getTime()).slice(-6));
+    let amount = plan.price;
+    const currentSubscription = await getSubscriptionByUserIdService(userId);
+    if (currentSubscription) {
+      const currentPlan = await getPlanByIdService(currentSubscription.plan_id);
+      amount = plan.price - currentPlan.price;
+    }
+    
     const newTransaction = await Transactions.create(
       {
         user_id: userId,
         plan_id: planId,
-        amount: plan.price,
+        amount: amount,
         order_code: orderCode,
       },
       { transaction }
@@ -33,7 +42,7 @@ const createTransactionService = async (userId, planId) => {
     const description = `${plan.name} Subscription 1M`;
     const paymentData = await createPaymentLink(
       orderCode,
-      parseInt(plan.price),
+      parseInt(amount),
       description
     );
     await transaction.commit();
@@ -65,22 +74,21 @@ const verifyTransactionService = async (orderCode) => {
       await paymentTransaction.update({ status: "paid" });
 
       try {
-        const subscription = await UserPlans.findOne({
-          where: { user_id: paymentTransaction.user_id },
-          order: [["end_date", "DESC"]],
-        });
+        const currentSubscription = await getSubscriptionByUserIdService(paymentTransaction.user_id);
 
-        if (!subscription) {
+        if (!currentSubscription) {
           await activateSubscriptionService(
             paymentTransaction.user_id,
             paymentTransaction.plan_id
           );
-        } else if (subscription.plan_id < paymentTransaction.plan_id) {
-          await upgradeSubscriptionService(
+        } else if (currentSubscription.plan_id < paymentTransaction.plan_id) {
+          await activateSubscriptionService(
             paymentTransaction.user_id,
             paymentTransaction.plan_id,
-            subscription.end_date
+            currentSubscription.start_date
           );
+
+          await deactivateSubscriptionService(currentSubscription.id);
         }
       } finally {
         status = "paid";

@@ -1,6 +1,6 @@
 import {
   getAllMoviesService,
-  getMovieByIdService,
+  getMovieBySlugService,
   createMovieService,
   updateMovieService,
   deleteMovieService,
@@ -48,9 +48,9 @@ const getAllMoviesController = async (req, res) => {
   }
 };
 
-const getMovieByIdController = async (req, res) => {
+const getMovieBySlugController = async (req, res) => {
   try {
-    const movie = await getMovieByIdService(req.params.id);
+    const movie = await getMovieBySlugService(req.params.slug);
 
     return res.status(200).json({
       statusCode: 200,
@@ -223,7 +223,7 @@ const deleteMovieController = async (req, res) => {
 
 export {
   getAllMoviesController,
-  getMovieByIdController,
+  getMovieBySlugController,
   createMovieController,
   updateMovieController,
   deleteMovieController,

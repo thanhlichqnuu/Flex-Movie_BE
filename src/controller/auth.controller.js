@@ -7,7 +7,6 @@ import {
   initiateRegistrationService,
   verifyOTPService,
 } from "../services/auth.service";
-
 import { createUserService } from "../services/users.service";
 import { resetPasswordService } from "../services/users.service";
 

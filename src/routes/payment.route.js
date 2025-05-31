@@ -5,8 +5,7 @@ import {
   verifyTransactionController,
 } from "../controller/payment.controller";
 import {
-  checkNotEmpty,
-  checkPlanIdValid,
+  checkNotEmpty
 } from "../validations/auth.validation";
 import {
   authenticateAccessToken,
@@ -16,10 +15,9 @@ import {
 const router = express.Router();
 const initTransactionRoutes = (app) => {
   router.post(
-    "/:id",
+    "/users/:id",
     validate((req) => {
       checkNotEmpty(req.body.planId, "Plan ID");
-      checkPlanIdValid(req.body.planId);
     }),
     authenticateAccessToken,
     authorizeRoles("unsubscriber", "subscriber"),
@@ -34,7 +32,7 @@ const initTransactionRoutes = (app) => {
   );
 
   router.get(
-    "/user/:id",
+    "/users/:id",
     authenticateAccessToken,
     authorizeRoles("subscriber"),
     getUserTransactionsController

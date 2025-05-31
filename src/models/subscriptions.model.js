@@ -3,7 +3,7 @@ import { sequelize } from "../config/sequelize.config";
 import Users from "./users.model";
 import Plans from "./plans.model";
 
-const UserPlans = sequelize.define("user_plans", {
+const Subscriptions = sequelize.define("subscriptions", {
   id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -39,11 +39,11 @@ const UserPlans = sequelize.define("user_plans", {
     defaultValue: sequelize.literal("CURRENT_TIMESTAMP + INTERVAL 1 MONTH"),
   },
 }, {
-  tableName: "user_plans",
+  tableName: "subscriptions",
   timestamps: false,
 });
 
-UserPlans.belongsTo(Users, { foreignKey: "user_id" });
-UserPlans.belongsTo(Plans, { foreignKey: "plan_id" });
+Subscriptions.belongsTo(Users, { foreignKey: "user_id" });
+Subscriptions.belongsTo(Plans, { foreignKey: "plan_id" });
 
-export default UserPlans;
+export default Subscriptions;

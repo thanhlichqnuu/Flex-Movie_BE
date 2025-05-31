@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { storeRedisKey } from "../utils/redis.util";
+import { getSubscriptionByUserIdService } from "./subscriptions.service";
 
 const ACCESS_TOKEN_SECRET = Bun.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = Bun.env.REFRESH_TOKEN_SECRET;
@@ -37,12 +38,15 @@ const verifyTokenService = (token, secretKey) => {
   });
 };
 
-const generateAccessTokenService = (user) => {
+const generateAccessTokenService = async (user) => {
+  const currentSubscription = await getSubscriptionByUserIdService(user.id);
+
   const payload = {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.Role.name,
+    subscription: currentSubscription ? currentSubscription.plan : null,
   };
 
   try {
@@ -51,6 +55,7 @@ const generateAccessTokenService = (user) => {
       ACCESS_TOKEN_SECRET,
       ACCESS_TOKEN_TTL
     );
+   
     return accessToken;
   } catch (err) {
     throw err;

@@ -3,7 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import initAuthRoutes from './src/routes/auth.route.js';
 import initUsersRoutes from './src/routes/users.route.js';
-import initUserPlansRoutes from './src/routes/user_plans.route.js';
+import initSubscriptionsRoutes from './src/routes/subscriptions.route.js';
 import initPlansRoutes from './src/routes/plans.route.js';
 import initTransactionRoutes from './src/routes/payment.route.js';
 import initMoviesRoutes from './src/routes/movies.route.js';
@@ -40,7 +40,7 @@ app.use(morgan('dev'));
 
 initAuthRoutes(app);
 initUsersRoutes(app);
-initUserPlansRoutes(app);
+initSubscriptionsRoutes(app);
 initPlansRoutes(app);
 initTransactionRoutes(app);
 initMoviesRoutes(app);

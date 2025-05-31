@@ -2,7 +2,7 @@ import { getEpisodesByMovieService, createEpisodeService, updateEpisodeService, 
 
 const getEpisodesByMovieController = async (req, res) => {
   try {
-    const episodes = await getEpisodesByMovieService(req.params.id);
+    const episodes = await getEpisodesByMovieService(req.params.slug);
     
     return res.status(200).json({
       statusCode: 200,

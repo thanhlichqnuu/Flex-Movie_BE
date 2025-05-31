@@ -12,7 +12,7 @@ import { imageUpload } from "../utils/multer.util";
 import { validateFileImage } from "../middleware/auth.middleware";
 import {
   getAllMoviesController,
-  getMovieByIdController,
+  getMovieBySlugController,
   createMovieController,
   updateMovieController,
   deleteMovieController,
@@ -32,10 +32,10 @@ const initMoviesRoutes = (app) => {
     getAllMoviesController
   );
   router.get(
-    "/:id",
+    "/:slug",
     authenticateAccessToken,
     authorizeRoles("admin", "subscriber"),
-    getMovieByIdController
+    getMovieBySlugController
   );
   router.post(
     "/",

@@ -22,7 +22,7 @@ const router = express.Router();
 
 const initEpisodesRoutes = (app) => {
   router.get(
-    "/:id",
+    "/:slug",
     authenticateAccessToken,
     authorizeRoles("admin", "subscriber"),
     getEpisodesByMovieController

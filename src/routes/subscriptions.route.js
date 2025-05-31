@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllSubscriptionsByUserIdController, deactivateSubscriptionController } from "../controller/user_plans.controller";
+import { getSubscriptionByUserIdController, deactivateSubscriptionController } from "../controller/subscriptions.controller";
 import {
   authenticateAccessToken,
   authorizeRoles,
@@ -7,12 +7,12 @@ import {
 
 const router = express.Router();
 
-const initUserPlansRoutes = (app) => {
+const initSubscriptionsRoutes = (app) => {
   router.get(
-    "/user/:id",
+    "/users/:id",
     authenticateAccessToken,
     authorizeRoles("subscriber"),
-    getAllSubscriptionsByUserIdController
+    getSubscriptionByUserIdController
   );
   router.delete(
     "/:id",
@@ -23,4 +23,4 @@ const initUserPlansRoutes = (app) => {
   return app.use("/api/v1/subscriptions", router);
 };
 
-export default initUserPlansRoutes;
+export default initSubscriptionsRoutes
